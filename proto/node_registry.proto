@@ -1,7 +1,67 @@
 // TODO: Define gRPC service
-// service NodeRegistry {
-//   rpc Register(RegisterRequest) returns (NodeResponse);
-//   rpc List(Empty) returns (NodeList);
-//   rpc Get(GetRequest) returns (NodeResponse);
-//   rpc Delete(DeleteRequest) returns (Empty);
-// }
+// class NodeCreate(BaseModel):
+//     name: str
+//     host: str
+//     port: int = Field(gt=0, le=65535)
+//
+// class NodeUpdate(BaseModel):
+//     host: [str] = None
+//     port: [int] = Field(default=None, gt=0, le=65535)
+//
+// class NodeResponse(BaseModel):
+//     id: int
+//     name: str
+//     host: str
+//     port: int
+//     status: str
+//     created_at: datetime
+//     updated_at: datetime
+//     model_config = {"from_attributes": True}
+//
+syntax = "proto3";
+package node_registry;
+import "google/protobuf/timestamp.proto";
+
+
+message NodeResponse {
+  int32 id = 1;
+  string name = 2;
+  string host = 3;
+  int32 port = 4;
+  string status = 5;
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp updated_at = 7;
+}
+
+
+message RegisterRequest {
+    string name = 1;
+    string host = 2;
+    int32 port = 3;
+}
+
+
+message GetRequest {
+  string name = 1;
+}
+
+
+message DeleteRequest{
+  string name = 1;
+}
+
+
+message NodeList {
+  repeated NodeResponse nodes = 1;
+}
+
+
+message Empty {}
+
+
+service NodeRegistry {
+  rpc Register(RegisterRequest) returns (NodeResponse);
+  rpc List(Empty) returns (NodeList);
+  rpc Get(GetRequest) returns (NodeResponse);
+  rpc Delete(DeleteRequest) returns (Empty);
+}
