@@ -1,6 +1,6 @@
 # TODO: FastAPI gateway that translates REST -> gRPC calls
 import grpc
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Response
 from pydantic import BaseModel
 from google.protobuf.json_format import MessageToDict
 import node_registry_pb2
@@ -18,7 +18,11 @@ class NodeCreate(BaseModel):
     host: str
     port: int
 
-@app.post("/nodes")
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
+@app.post("/api/nodes", status_code=201)
 def register_node(node: NodeCreate):
     # 1. construir RegisterRequest con los campos de node
     # 2. llamar stub.Register dentro de try/except grpc.RpcError
@@ -35,7 +39,7 @@ def register_node(node: NodeCreate):
         if e.code() == grpc.StatusCode.ALREADY_EXISTS:
             raise HTTPException(status_code=409)
 
-@app.get("/nodes")
+@app.get("/api/nodes")
 def list_nodes():
     # 1. llamar stub.List(node_registry_pb2.Empty())
     # 2. el resultado tiene .nodes — es una lista de NodeResponse proto
@@ -45,7 +49,7 @@ def list_nodes():
     return [MessageToDict(node, preserving_proto_field_name=True) for node in response.nodes]
 
 
-@app.get("/nodes/{name}")
+@app.get("/api/nodes/{name}")
 def get_node(name: str):
     # 1. construir GetRequest(name=name)
     # 2. llamar stub.Get dentro de try/except
@@ -60,7 +64,7 @@ def get_node(name: str):
         if e.code() == grpc.StatusCode.NOT_FOUND:
             raise HTTPException(status_code=404)
 
-@app.delete("/nodes/{name}")
+@app.delete("/api/nodes/{name}")
 def delete_node(name: str):
     # 1. construir DeleteRequest(name=name)
     # 2. llamar stub.Delete dentro de try/except
